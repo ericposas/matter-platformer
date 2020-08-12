@@ -165,7 +165,7 @@ window.start = () => {
 
 		if (keys[37] || keys[39]) {
 			if (playerProps.acceleration < playerProps.movementSpeed) {
-				playerProps.acceleration += 0.2
+				playerProps.acceleration += 0.5
 			}
 		} else {
 			playerProps.acceleration = 0
@@ -202,14 +202,15 @@ window.start = () => {
 	wallLeft.label = 'wall1'
 	// console.log(player.inertia)
 	// some platforms
-	let platform1 = makePlatform(1, 200, 300)
+	let platform1 = makePlatform(1, 150, 300)
+	let platform2 = makePlatform(1, 450, 150)
 
 
 	// add bodies
 	World.add(world, [
 		player,
 		ground, wallLeft,
-		platform1
+		platform1, platform2
 	])
 
 	// fit the render viewport to the scene
