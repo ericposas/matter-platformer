@@ -120,8 +120,9 @@ window.start = () => {
 		defaultVelocity: .2,
 		// defaultInertia: 2407.040215928269,
 		velocity: .2,
-		// inAirMovement: 3,
-		movementSpeed: 5
+		inAirMovementSpeed: 3,
+		movementSpeed: 6,
+		acceleration: 0
 	}
 	// let dude = Bodies.rectangle(100, 0, dudeProps.width, dudeProps.height)
 	let player = Bodies.circle(100, 0, playerProps.radius, {
@@ -155,17 +156,34 @@ window.start = () => {
 	})
 	// main engine update loop
 	Events.on(engine, 'beforeTick', e => {
+
 		if (keys[32]) console.log(player)
 		// jump key
 		if (keys[38] && player.ground) {
 			player.force = { x: 0, y: playerProps.jumpForce }
 		}
 
+		if (keys[37] || keys[39]) {
+			if (playerProps.acceleration < playerProps.movementSpeed) {
+				playerProps.acceleration += 0.2
+			}
+		} else {
+			playerProps.acceleration = 0
+		}
+
 		if (keys[37]) {
-			Body.translate(player, { x: -playerProps.movementSpeed, y: 0 })
+			if (player.ground) {
+				Body.translate(player, { x: -playerProps.acceleration, y: 0 })
+			} else {
+				Body.translate(player, { x: -playerProps.inAirMovementSpeed, y: 0 })
+			}
 		} else {
 			if (keys[39]) {
-				Body.translate(player, { x: playerProps.movementSpeed, y: 0 })
+				if (player.ground) {
+					Body.translate(player, { x: playerProps.acceleration, y: 0 })
+				} else {
+					Body.translate(player, { x: playerProps.inAirMovementSpeed, y: 0 })
+				}
 			}
 		}
 
