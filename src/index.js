@@ -90,14 +90,38 @@ window.start = () => {
 		console.log(player.touchingWall)
 	}
 
+	const checkPlatform = (e, bool) => {
+		let pairs = e.pairs
+		function checkAbovePlatform(plat) {
+			if (player.position.y + playerProps.radius - 1 < plat.bounds.min.y) {
+				// console.log(player.position.y, plat.bounds.min.y)
+				player.ground = bool
+			} else {
+				player.ground = false
+			}
+		}
+		for (let i = 0, j = pairs.length; i != j; ++i) {
+			let pair = pairs[i]
+			let plat
+			if (pair.bodyA === player && pair.bodyB.label.indexOf('platform') > -1) {
+				plat = pair.bodyB
+				checkAbovePlatform(plat)
+			} else if (pair.bodyB === player && pair.bodyA.label.indexOf('platform') > -1) {
+				plat = pair.bodyA
+				checkAbovePlatform(plat)
+			}
+		}
+	}
+
 	// describe bodies
 	let playerProps = {
 		radius: 25,
-		jumpForce: -.075,
+		jumpForce: -.1,
 		defaultVelocity: .2,
 		// defaultInertia: 2407.040215928269,
 		velocity: .2,
-		inAirMovement: 3
+		// inAirMovement: 3,
+		movementSpeed: 5
 	}
 	// let dude = Bodies.rectangle(100, 0, dudeProps.width, dudeProps.height)
 	let player = Bodies.circle(100, 0, playerProps.radius, {
@@ -108,22 +132,26 @@ window.start = () => {
 		restitution: 0,
 		ground: false,
 		touchingWall: false,
-		// inertia: Infinity
+		// touchingPlatform: false,
+		inertia: Infinity
 	})
 	// at start, checks for collisions for player
 	Events.on(engine, 'collisionStart', e => {
 		checkGround(e, true)
 		checkWall(e, true)
+		checkPlatform(e, true)
 	})
 	// Event: ongoing checks for collisions for player
 	Events.on(engine, 'collisionActive', e => {
 		checkGround(e, true)
 		checkWall(e, true)
+		checkPlatform(e, true)
 	})
 	// at end of a collision, set ground to false
 	Events.on(engine, 'collisionEnd', e => {
 		checkGround(e, false)
 		checkWall(e, false)
+		checkPlatform(e, false)
 	})
 	// main engine update loop
 	Events.on(engine, 'beforeTick', e => {
@@ -132,36 +160,21 @@ window.start = () => {
 		if (keys[38] && player.ground) {
 			player.force = { x: 0, y: playerProps.jumpForce }
 		}
-		// spin left and right
-		if (player.ground) {
-			if (keys[37] && player.angularVelocity > -playerProps.velocity) {
-				player.torque = -.1
-			} else {
-				if (keys[39] && player.angularVelocity < playerProps.velocity) {
-					player.torque = .1
-				}
-			}
-		} else { // if in-air
-			if (keys[37] && player.angularVelocity > -playerProps.velocity) {
-				Body.translate(player, { x: -playerProps.inAirMovement, y: 0 })
-			} else {
-				if (keys[39] && player.angularVelocity < playerProps.velocity) {
-					Body.translate(player, { x: playerProps.inAirMovement, y: 0 })
-				}
+
+		if (keys[37]) {
+			Body.translate(player, { x: -playerProps.movementSpeed, y: 0 })
+		} else {
+			if (keys[39]) {
+				Body.translate(player, { x: playerProps.movementSpeed, y: 0 })
 			}
 		}
-
-		// if (player.touchingWall == true) {
-		// 	player.inertia = Infinity
-		// } else {
-		// 	player.inertia = playerProps.defaultInertia
-		// }
 
 	})
 
 	const makePlatform = (type, x, y) => {
 		let plat = Bodies.rectangle(x + 100, y + 25, 200, 50, { isStatic: true })
 		plat.label = 'platform' + Matter.Composite.allBodies.length
+		console.log(plat)
 		if (type == 1) { return plat }
 	}
 
