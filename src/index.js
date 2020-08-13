@@ -136,6 +136,10 @@ window.start = () => {
 
 	// describe bodies
 	let playerProps = {
+		// rect: {
+		// 	width: 25,
+		// 	height: 25
+		// },
 		radius: 25,
 		jumpForce: -.1,
 		defaultVelocity: .2,
@@ -146,6 +150,7 @@ window.start = () => {
 		acceleration: 0
 	}
 	// let dude = Bodies.rectangle(100, 0, dudeProps.width, dudeProps.height)
+	// let player = Bodies.rectangle(100, 0, playerProps.rect.width, playerProps.size, {
 	let player = Bodies.circle(100, 0, playerProps.radius, {
 		density: .001,
 		friction: .5,
