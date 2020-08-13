@@ -87,14 +87,12 @@ window.start = () => {
 						player.touchingWall = bool
 				}
 		}
-		console.log(player.touchingWall)
 	}
 
 	const checkPlatform = (e, bool) => {
 		let pairs = e.pairs
 		function checkAbovePlatform(plat) {
 			if (player.position.y + playerProps.radius - 1 < plat.bounds.min.y) {
-				// console.log(player.position.y, plat.bounds.min.y)
 				player.ground = bool
 			} else {
 				player.ground = false
@@ -109,6 +107,29 @@ window.start = () => {
 			} else if (pair.bodyB === player && pair.bodyA.label.indexOf('platform') > -1) {
 				plat = pair.bodyA
 				checkAbovePlatform(plat)
+			}
+		}
+	}
+
+	const checkSidePlatform  = (e) => {
+		let pairs = e.pairs
+		function checkForSideOfPlatform(plat) {
+			if (player.position.x < plat.bounds.min.x || player.position.x > plat.bounds.max.x) {
+				console.log(player.position.x, plat.bounds.min.x)
+				player.touchingSideOfPlatform = true
+			} else {
+				player.touchingSideOfPlatform = false
+			}
+		}
+		for (let i = 0, j = pairs.length; i != j; ++i) {
+			let pair = pairs[i]
+			let plat
+			if (pair.bodyA === player && pair.bodyB.label.indexOf('platform') > -1) {
+				plat = pair.bodyB
+				checkForSideOfPlatform(plat)
+			} else if (pair.bodyB === player && pair.bodyA.label.indexOf('platform') > -1) {
+				plat = pair.bodyA
+				checkForSideOfPlatform(plat)
 			}
 		}
 	}
@@ -133,7 +154,7 @@ window.start = () => {
 		restitution: 0,
 		ground: false,
 		touchingWall: false,
-		// touchingPlatform: false,
+		touchingSideOfPlatform: false,
 		inertia: Infinity
 	})
 	// at start, checks for collisions for player
@@ -141,23 +162,26 @@ window.start = () => {
 		checkGround(e, true)
 		checkWall(e, true)
 		checkPlatform(e, true)
+		checkSidePlatform(e)
 	})
 	// Event: ongoing checks for collisions for player
 	Events.on(engine, 'collisionActive', e => {
 		checkGround(e, true)
 		checkWall(e, true)
 		checkPlatform(e, true)
+		checkSidePlatform(e)
 	})
 	// at end of a collision, set ground to false
 	Events.on(engine, 'collisionEnd', e => {
 		checkGround(e, false)
 		checkWall(e, false)
 		checkPlatform(e, false)
+		checkSidePlatform(e)
 	})
 	// main engine update loop
 	Events.on(engine, 'beforeTick', e => {
 
-		if (keys[32]) console.log(player)
+		// if (keys[32]) console.log(player)
 		// jump key
 		if (keys[38] && player.ground) {
 			player.force = { x: 0, y: playerProps.jumpForce }
@@ -185,6 +209,12 @@ window.start = () => {
 					Body.translate(player, { x: playerProps.inAirMovementSpeed, y: 0 })
 				}
 			}
+		}
+
+		if ((player.touchingWall || player.touchingSideOfPlatform) && !player.ground) {
+			player.friction = 0
+		} else {
+			player.friction = .5
 		}
 
 	})
